@@ -1,15 +1,13 @@
-% askGen.m 
+% magGen.m 
 % millilitre 
 % 20150602 created
 % 20150603 tested
 
-function sigOut = askGen(fs,fc,bitrate,mask,bitDef,maxLen)
-% mask should be greater than 2.
-% 
-if mask < 2
-    disp('askGen.m: Warning: mask should be greater than 2.');
-    mask = 2;
-end
+function sigOut = magGen(fs,bitrate,bitDef,maxLen)
+% generate something like this:
+%%%%  %%%%  %%%%
+   %  %  %  %
+   %%%%  %%%%
 %% init parameters
 t0 = 1/fs;
 bitLen = 1/bitrate/t0;
@@ -30,7 +28,7 @@ for i = 1:1:N
     end
     currentTime = i * t0;
     if(currentBit <= nBits)
-        signal(i) = code(currentBit) * sin(fc * 2 * pi * currentTime);
+        signal(i) = code(currentBit);
     end
 end
 
@@ -40,5 +38,3 @@ if size(signal,2) > maxLen
 else
     sigOut = signal;
 end
-
-    

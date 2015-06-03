@@ -15,4 +15,4 @@ qam16 = [-3 -1 3 1 -3 -1 3 1 -3 -1 3 1 -3 -1 3 1
          -3 -3 -3 -3 -1 -1 -1 -1 3 3 3 3 1 1 1 1];
 I = magGen(fs,bitrate,qam16(1,:),maxLen);
 Q = magGen(fs,bitrate,qam16(1,:),maxLen);
-sigOut = I .*
+sigOut = I .* sin(t) + Q .* cos(t);

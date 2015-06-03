@@ -6,10 +6,10 @@ function result = binary2decimal(input, n)
 % input must have length = x * n, x is an integer.
 % input can be a row vector of a 2d matrix. If input is a matrix, the
 % fuction computes the result of each row vector.
-nRow = int32(size(input, 1));
-nCol = int32(size(input, 2));
+nRow = (size(input, 1));
+nCol = (size(input, 2))
 divisible = 1; % whether nCol is divisible by n
-loop = uint32(nCol / n);
+loop = (floor(nCol / n));
 %% input check
 if(mod(nCol, int32(n)))
     disp('binary2decimal.m: Warning: input column is not divisible by n.Might lose data.');
