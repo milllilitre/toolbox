@@ -1,0 +1,14 @@
+% qamGen.m 
+% millilitre 
+% 20150601 created
+
+function sigOut = qamGen(fs,fc,bitrate,xqam,bitdef,maxLen)
+% now only support 16qam
+%% init parameters
+t0 = 1/fs;
+bitLen = 1/bitrate/t0;
+%% generate waveform
+code = binary2decimal(bitdef, log2(xqam));
+qam16 = [-3 -1 3 1 -3 -1 3 1 -3 -1 3 1 -3 -1 3 1
+         -3 -3 -3 -3 -1 -1 -1 -1 3 3 3 3 1 1 1 1];
+I = pskGen
