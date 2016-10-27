@@ -1,10 +1,11 @@
-% fskGen.m 
+% dualSubGen.m 
 % millilitre 
 % 20150601 created
 % 20150602 tested
 
-function sigOut = fskGen(fs,fc0,fc1,bitrate,bitDef,maxLen)
-% bitDef is a row vector containing only 0 and 1
+function sigOut = dualSubGen(fs,fc0,fc1,cyclePerSymbol,bitDef,maxLen)
+% bitDef is a row vector
+% mpsk should be 2^integer
 % The length of sigOut is no greater than maxLen. No 0 padding when
 % size(sigOut, 2) < maxLen
 % fc1:0, fc2:1
@@ -13,8 +14,8 @@ function sigOut = fskGen(fs,fc0,fc1,bitrate,bitDef,maxLen)
 t0 = 1 / fs;
 bitLen = 1 ./ bitrate ./ t0;
 T = zeros(1,2);
-T(1) = fs / bitrate; % 0
-T(2) = fs / bitrate; % 1
+T(1) = cyclePerSymbol / fc0; % 0
+T(2) = cyclePerSymbol / fc1; % 1
 fc = zeros(1,2);
 fc(1) = fc0;
 fc(2) = fc1;
@@ -25,7 +26,7 @@ freqDeviation = 0;
 
 %% generate waveform
 delay = 0;
-N = double(uint32(fs * (T(2) * sum(bitDef) + T(1) * (size(bitDef,2) - sum(bitDef)))));       % number of sample points
+N = double(uint32(fs * (T1 * sum(bitDef) + T0 * (size(bitDef,2) - sum(bitDef)))));       % number of sample points
 signal = zeros(1,N);
 t = 0:t0:(double(N) * t0 - t0);
 code = bitDef;
@@ -40,14 +41,13 @@ else
 	endTime = T0;
 end
 
-
 for i = 1:1:N
 	if(t(i) > endTime)
 		xthBit = xthBit + 1;
 		startTime = endTime;
 		endTime = startTime + T(bitDef(xthBit) + 1);
 	end
-	signal = sin(fc(bitDef(xthBit) + 1) * (1 + freqDeviation) * 2 * pi * t(i));
+	signal = sin(fc(bitDef(xthBit) + 1) * (1 + freqDeviation) * 2 * pi * (t(i) - startTime));
 end
 
 %% concatenate

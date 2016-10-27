@@ -3,7 +3,7 @@
 % 20150601 created
 % 20150602 tested
 
-function sigOut = fskGen(fs,fc0,fc1,bitrate,bitDef,maxLen)
+function sigOut = fskGen(fs,fc,bitrate,bitDef,maxLen)
 % bitDef is a row vector containing only 0 and 1
 % The length of sigOut is no greater than maxLen. No 0 padding when
 % size(sigOut, 2) < maxLen
@@ -25,7 +25,7 @@ freqDeviation = 0;
 
 %% generate waveform
 delay = 0;
-N = double(uint32(fs * (T(2) * sum(bitDef) + T(1) * (size(bitDef,2) - sum(bitDef)))));       % number of sample points
+N = double(uint32(fs * (T1 * sum(bitDef) + T0 * (size(bitDef,2) - sum(bitDef)))));       % number of sample points
 signal = zeros(1,N);
 t = 0:t0:(double(N) * t0 - t0);
 code = bitDef;
@@ -47,7 +47,9 @@ for i = 1:1:N
 		startTime = endTime;
 		endTime = startTime + T(bitDef(xthBit) + 1);
 	end
-	signal = sin(fc(bitDef(xthBit) + 1) * (1 + freqDeviation) * 2 * pi * t(i));
+	if(bitDef(xthBit))
+		signal = sin(fc * (1 + freqDeviation) * 2 * pi * t(i));
+	end
 end
 
 %% concatenate

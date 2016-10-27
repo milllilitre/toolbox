@@ -1,0 +1,125 @@
+% DE>net.trainFcn = 'traingda';%变学习率梯度下降算法
+% net.trainFCN = 'traingdx';%变学习率动量梯度下降算法
+
+% % DE>可以定义一个变动的学习速率，如：
+% p = [-1 -1 2 2; 0 5 0 5];
+% t = [-1 -1 1 1];
+% net = newff(p,t,3,{},'traingda');
+% net.trainParam.lr = 0.05;
+% net.trainParam.lr_inc = 1.05;
+% net = train(net,p,t);
+% y = sim(net,p);
+
+
+% main.m
+close all;
+clear all;
+clc;
+addpath(genpath('E:\BaiduCloudDir\Document\RFID\millilitre\matlab\toolbox/.'));
+%cd('E:\BaiduCloudDir\Document\RFID\millilitre\matlab\toolbox\signal');
+
+
+
+
+%% note: all folders must be removed before executing this file
+
+
+%% parameters
+trainSNR = [5 0 -5 10 -10];
+trainMod = ['ASK' 'FSK' 'subcarrierASK' 'PSK' 'noise' 'carrier'];
+valSNR = [-10];
+valMod = ['ASK' 'FSK' 'subcarrierASK' 'PSK' 'noise' 'carrier'];
+nTrain = 100;
+nVal = 100;
+fs = 32;
+fc = 4;
+bitrate = 1;
+bits =  8;
+
+
+maxLen = bits * fs / bitrate; % length of the signal generated
+trainInput = zeros(maxLen, nTrain * size(trainSNR,2) * 2);
+trainTarget = zeros(1, nTrain * size(trainSNR,2) * 2);
+valInput = zeros(maxLen, nVal * size(valSNR, 2) * 2);
+valTarget = zeros(1, nVal * size(valSNR, 2) * 2);
+
+%% training data
+for j = 1:1:size(trainSNR,2)
+    for i=1:1:nTrain
+        flag = 0;
+        while(flag == 0) 
+            bitDef = randi(2,1,bits) - 1;
+            if((sum(bitDef) == 0)||(sum(bitDef) == bits))
+                flag = 0;
+            else
+                flag = 1;
+            end
+        end
+        modulated = magGen(fs,bitrate,bitDef,maxLen);
+        received = awgn(modulated,trainSNR(j),'measured');
+        received = received / max(received);
+        trainInput(:,(2 * i - 1 + (j - 1) * nTrain * 2)) = received;
+        trainTarget(2 * i - 1 + (j - 1) * nTrain * 2) = 1;
+%         imwrite(received,['train/ask' int2str(trainSNR(j)) 'dB_' int2str(i) '.bmp']);
+%         fprintf(fTrain, ['train/ask' int2str(trainSNR(j)) 'dB_' int2str(i) '.bmp']);
+%         fprintf(fTrain, ' %g\n', 1);
+    end
+    for i = 1:1:nTrain
+        noise = zeros(1,maxLen);
+        noise = awgn(noise, trainSNR(j));
+        noise = noise / max(noise);
+        trainInput(:,(2 * i + (j - 1) * nTrain * 2)) = noise;
+        trainTarget(2 * i + (j - 1) * nTrain * 2) = 0;
+%         imwrite(noise,['train/noise' int2str(trainSNR(j)) 'dB_' int2str(i) '.bmp']);
+%         fprintf(fTrain, ['train/noise' int2str(trainSNR(j)) 'dB_' int2str(i) '.bmp']);
+%         fprintf(fTrain, ' %g\n', 0);
+    end
+    trainSNR(j)
+end
+disp('train sig generated');
+
+% fclose(fTrain);
+%% validation data
+% fVal = fopen('val.txt','w');
+for j = 1:1:size(valSNR,2)
+    for i=1:1:nVal
+        flag = 0;
+        while(flag == 0) 
+            bitDef = randi(2,1,bits) - 1;
+            if((sum(bitDef) == 0)||(sum(bitDef) == bits))
+                flag = 0;
+            else
+                flag = 1;
+            end
+        end
+        modulated = magGen(fs,bitrate,bitDef,maxLen);
+        received = awgn(modulated,valSNR(j),'measured');
+        received = received / max(received);
+        valInput(:,(2 * i - 1 + (j - 1) * nVal * 2)) = received;
+        valTarget(2 * i - 1 + (j - 1) * nVal * 2) = 1;
+%         imwrite(received,['val/ask' int2str(valSNR(j)) 'dB_' int2str(i) '.bmp']);
+%         fprintf(fVal, ['val/ask' int2str(valSNR(j)) 'dB_' int2str(i) '.bmp']);
+%         fprintf(fVal, ' %g\n', 1);
+    end
+    for i = 1:1:nVal
+        noise = zeros(1,maxLen);
+        noise = awgn(noise, valSNR(j));
+        noise = noise / max(noise);
+        valInput(:,(2 * i + (j - 1) * nVal * 2)) = noise;
+        valTarget(2 * i + (j - 1) * nVal * 2) = 0;
+%         imwrite(noise,['val/noise' int2str(valSNR(j)) 'dB_' int2str(i) '.bmp']);
+%         fprintf(fVal, ['val/noise' int2str(valSNR(j)) 'dB_' int2str(i) '.bmp']);
+%         fprintf(fVal, ' %g\n', 0);
+    end
+    valSNR(j)
+end
+disp('val sig generated');
+% fclose(fVal);
+net = newff(trainInput,trainTarget,[128 4]);
+disp('train net');
+net = train(net, trainInput, trainTarget);
+disp('get output of BP net');
+outputs = net(valInput);
+errors = valTarget - outputs;
+disp('see result');
+perf = perform(net, outputs, valTarget);
